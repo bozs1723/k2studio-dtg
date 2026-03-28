@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K2 Studio DTG - Job Order</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#f0f2f5;--card:#fff;--text:#1a1a2e;--sub:#64748b;--accent:#6c5ce7;--accent2:#a29bfe;--border:#e2e8f0;--success:#00b894;--danger:#e17055;--warn:#fdcb6e;--radius:14px;--shadow:0 2px 12px rgba(0,0,0,.08)}
+body{font-family:'Segoe UI',sans-serif;background:var(--bg);color:var(--text);padding-bottom:100px}
+.topbar{background:linear-gradient(135deg,var(--accent),#4a3dc7);color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 4px 20px rgba(108,92,231,.3)}
+.topbar h1{font-size:1.2rem}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.topbar-actions button{background:rgba(255,255,255,.2);border:none;color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer;font-size:.85rem}
+.topbar-actions button:hover{background:rgba(255,255,255,.3)}
+.status-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.status-dot.online{background:#00b894}
+.status-dot.offline{background:#e17055}
+.container{max-width:900px;margin:0 auto;padding:20px}
+.card{background:var(--card);border-radius:var(--radius);padding:24px;margin-bottom:20px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.card-title{font-size:1.1rem;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:.8rem;color:var(--sub);font-weight:600}
+.form-group input,.form-group select,.form-group textarea{padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-size:.95rem;transition:border-color .2s;background:var(--card);color:var(--text)}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent);outline:none}
+.full-width{grid-column:1/-1}
+.pill-group{display:flex;gap:8px;flex-wrap:wrap}
+.pill{padding:8px 18px;border-radius:50px;border:2px solid var(--border);background:var(--card);cursor:pointer;font-size:.85rem;font-weight:600;transition:all .2s;user-select:none}
+.pill:hover{border-color:var(--accent)}
+.pill.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pill.rush{border-color:#e17055}.pill.rush.active{background:#e17055}
+.pill.urgent{border-color:#d63031}.pill.urgent.active{background:#d63031}
+.shirt-diagram{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:12px}
+.shirt-panel{text-align:center}
+.shirt-panel h4{margin-bottom:10px;font-size:.9rem}
+.shirt-svg-wrap{position:relative;display:inline-block}
+.print-zone{position:absolute;border:2px dashed;opacity:0;transition:opacity .3s;pointer-events:none;border-radius:4px}
+.print-zone.active{opacity:.4}
+.zone-full{width:60%;height:50%;top:28%;left:20%;border-color:#e17055;background:rgba(225,112,85,.15)}
+.zone-a3{width:50%;height:42%;top:32%;left:25%;border-color:#0984e3;background:rgba(9,132,227,.15)}
+.zone-a4{width:38%;height:34%;top:36%;left:31%;border-color:#00b894;background:rgba(0,184,148,.15)}
+.zone-left{width:18%;height:16%;top:30%;left:22%;border-color:#6c5ce7;background:rgba(108,92,231,.15)}
+.zone-right{width:18%;height:16%;top:30%;right:22%;border-color:#d63031;background:rgba(214,48,49,.15)}
+.zone-pills{display:flex;gap:6px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+.zone-pill{padding:4px 12px;border-radius:50px;font-size:.75rem;font-weight:700;cursor:pointer;border:2px solid;transition:all .2s;user-select:none}
+.zone-pill.zp-full{color:#e17055;border-color:#e17055}.zone-pill.zp-full.active{background:#e17055;color:#fff}
+.zone-pill.zp-a3{color:#0984e3;border-color:#0984e3}.zone-pill.zp-a3.active{background:#0984e3;color:#fff}
+.zone-pill.zp-a4{color:#00b894;border-color:#00b894}.zone-pill.zp-a4.active{background:#00b894;color:#fff}
+.zone-pill.zp-left{color:#6c5ce7;border-color:#6c5ce7}.zone-pill.zp-left.active{background:#6c5ce7;color:#fff}
+.zone-pill.zp-right{color:#d63031;border-color:#d63031}.zone-pill.zp-right.active{background:#d63031;color:#fff}
+.size-tabs{display:flex;gap:0;margin-bottom:12px}
+.size-tab{flex:1;padding:10px;text-align:center;cursor:pointer;font-weight:700;font-size:.85rem;border:2px solid var(--border);transition:all .2s}
+.size-tab:first-child{border-radius:10px 0 0 10px}
+.size-tab:last-child{border-radius:0 10px 10px 0}
+.size-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.size-table{width:100%;border-collapse:collapse;font-size:.85rem}
+.size-table th,.size-table td{padding:8px 10px;text-align:center;border:1px solid var(--border)}
+.size-table th{background:var(--accent);color:#fff;font-size:.75rem}
+.size-table input{width:50px;padding:6px;text-align:center;border:2px solid var(--border);border-radius:8px;font-size:.9rem}
+.size-table input:focus{border-color:var(--accent);outline:none}
+.total-row{font-weight:700;background:#f8f9fa}
+.price-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:14px}
+.price-highlight{background:linear-gradient(135deg,var(--accent),#4a3dc7);color:#fff;padding:16px;border-radius:12px;text-align:center}
+.price-highlight .label{font-size:.75rem;opacity:.8}
+.price-highlight .value{font-size:1.5rem;font-weight:800}
+.action-bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:2px solid var(--border);padding:14px 24px;display:flex;justify-content:space-between;align-items:center;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,.1)}
+.btn{padding:12px 28px;border-radius:12px;border:none;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#4a3dc7);color:#fff}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 4px 15px rgba(108,92,231,.4)}
+.btn-secondary{background:var(--border);color:var(--text)}
+.btn-outline{background:transparent;border:2px solid var(--border);color:var(--text)}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);border-radius:var(--radius);padding:30px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto}
+.modal h3{margin-bottom:16px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px}
+.due-warn{padding:6px 12px;border-radius:8px;font-size:.8rem;font-weight:600;margin-top:6px;display:none}
+.due-warn.overdue{display:block;background:#ffe0d6;color:#d63031}
+.due-warn.soon{display:block;background:#ffeaa7;color:#856404}
+[data-theme=dark]{--bg:#1a1a2e;--card:#16213e;--text:#e2e8f0;--sub:#94a3b8;--border:#2d3748;--shadow:0 2px 12px rgba(0,0,0,.3)}
+@media print{.topbar,.action-bar,.no-print{display:none!important}body{padding:10px}}
+@media(max-width:600px){.form-grid,.price-grid{grid-template-columns:1fr}.shirt-diagram{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="topbar">
+<div><h1>K2 Studio DTG</h1><small>Job Order System</small></div>
+<div class="topbar-actions">
+<span class="status-dot" id="statusDot"></span>
+<span id="statusText" style="font-size:.8rem">Connecting...</span>
+<button onclick="toggleTheme()">Dark/Light</button>
+</div>
+</div>
+<div class="container">
+<!-- JO Header -->
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+<div>
+<div style="font-size:.8rem;color:var(--sub)">JOB ORDER NO.</div>
+<div id="joDisplay" style="font-size:1.8rem;font-weight:800;color:var(--accent)">Loading...</div>
+</div>
+<div class="form-group">
+<label>กำหนดส่ง</label>
+<input type="date" id="dueDate">
+<div class="due-warn" id="dueWarn"></div>
+</div>
+<div>
+<div style="font-size:.8rem;color:var(--sub)">วันที่ออกใบงาน</div>
+<div id="dateDisplay" style="font-size:1rem;font-weight:600"></div>
+</div>
+</div>
+</div>
+<!-- Customer Info -->
+<div class="card">
+<div class="card-title">ข้อมูลลูกค้า</div>
+<div class="form-grid">
+<div class="form-group"><label>ชื่อลูกค้า</label><input type="text" id="custName" placeholder="ชื่อ-นามสกุล"></div>
+<div class="form-group"><label>FB / Line</label><input type="text" id="custFB" placeholder="Facebook หรือ Line ID"></div>
+<div class="form-group"><label>เบอร์โทร</label><input type="tel" id="custPhone" placeholder="0xx-xxx-xxxx"></div>
+<div class="form-group"><label>ชื่อไฟล์งาน</label><input type="text" id="fileName" placeholder="ชื่อไฟล์"></div>
+<div class="form-group"><label>ผู้รับงาน</label><input type="text" id="receiver" placeholder="ชื่อผู้รับงาน"></div>
+<div class="form-group"><label>สีเสื้อ</label><input type="text" id="shirtColor" placeholder="สีเสื้อ"></div>
+</div>
+</div>
+<!-- Urgency -->
+<div class="card">
+<div class="card-title">ระดับงาน</div>
+<div class="pill-group" id="urgencyGroup">
+<div class="pill active" data-val="normal" onclick="selectPill('urgencyGroup',this)">ปกติ</div>
+<div class="pill rush" data-val="rush" onclick="selectPill('urgencyGroup',this)">เร่งด่วน</div>
+<div class="pill urgent" data-val="urgent" onclick="selectPill('urgencyGroup',this)">ด่วนมาก</div>
+</div>
+</div>
+<!-- Delivery -->
+<div class="card">
+<div class="card-title">ช่องทางรับสินค้า</div>
+<div class="pill-group" id="deliveryGroup">
+<div class="pill" data-val="pickup" onclick="selectPill('deliveryGroup',this)">รับเอง</div>
+<div class="pill" data-val="messenger" onclick="selectPill('deliveryGroup',this)">Messenger</div>
+<div class="pill" data-val="kerry" onclick="selectPill('deliveryGroup',this)">Kerry</div>
+<div class="pill" data-val="flash" onclick="selectPill('deliveryGroup',this)">Flash</div>
+</div>
+</div>
+<!-- Payment -->
+<div class="card">
+<div class="card-title">ช่องทางชำระเงิน</div>
+<div class="pill-group" id="paymentGroup">
+<div class="pill" data-val="transfer" onclick="togglePill(this)">โอน</div>
+<div class="pill" data-val="cash" onclick="togglePill(this)">เงินสด</div>
+<div class="pill" data-val="qr" onclick="togglePill(this)">QR Code</div>
+<div class="pill" data-val="credit" onclick="togglePill(this)">เครดิต</div>
+</div>
+</div>
+<!-- Shirt Diagram -->
+<div class="card">
+<div class="card-title">ตำแหน่งสกรีน</div>
+<div class="shirt-diagram">
+<div class="shirt-panel">
+<h4>หน้า (Front)</h4>
+<div class="shirt-svg-wrap" id="frontWrap">
+<svg width="200" height="240" viewBox="0 0 200 240">
+<path d="M60,30 L40,45 L15,85 L35,95 L50,65 L50,220 L150,220 L150,65 L165,95 L185,85 L160,45 L140,30 Q120,50 100,50 Q80,50 60,30 Z" fill="#ffffff" stroke="#333" stroke-width="2"/>
+<path d="M60,30 Q80,50 100,50 Q120,50 140,30" fill="none" stroke="#333" stroke-width="2"/>
+<line x1="50" y1="210" x2="150" y2="210" stroke="#ccc" stroke-width="1" stroke-dasharray="4"/>
+</svg>
+<div class="print-zone zone-full" id="fZoneFull"></div>
+<div class="print-zone zone-a3" id="fZoneA3"></div>
+<div class="print-zone zone-a4" id="fZoneA4"></div>
+<div class="print-zone zone-left" id="fZoneLeft"></div>
+<div class="print-zone zone-right" id="fZoneRight"></div>
+</div>
+<div class="zone-pills">
+<span class="zone-pill zp-full" onclick="toggleZone('f','full',this)">40x60</span>
+<span class="zone-pill zp-a3" onclick="toggleZone('f','a3',this)">A3</span>
+<span class="zone-pill zp-a4" onclick="toggleZone('f','a4',this)">A4</span>
+<span class="zone-pill zp-left" onclick="toggleZone('f','left',this)">อกซ้าย</span>
+<span class="zone-pill zp-right" onclick="toggleZone('f','right',this)">อกขวา</span>
+</div>
+</div>
+<div class="shirt-panel">
+<h4>หลัง (Back)</h4>
+<div class="shirt-svg-wrap" id="backWrap">
+<svg width="200" height="240" viewBox="0 0 200 240">
+<path d="M60,30 L40,45 L15,85 L35,95 L50,65 L50,220 L150,220 L150,65 L165,95 L185,85 L160,45 L140,30 Q120,42 100,42 Q80,42 60,30 Z" fill="#ffffff" stroke="#333" stroke-width="2"/>
+<line x1="50" y1="210" x2="150" y2="210" stroke="#ccc" stroke-width="1" stroke-dasharray="4"/>
+<rect x="85" y="32" width="30" height="12" rx="2" fill="#f0f0f0" stroke="#ccc" stroke-width="1"/>
+</svg>
+<div class="print-zone zone-full" id="bZoneFull"></div>
+<div class="print-zone zone-a3" id="bZoneA3"></div>
+<div class="print-zone zone-a4" id="bZoneA4"></div>
+</div>
+<div class="zone-pills">
+<span class="zone-pill zp-full" onclick="toggleZone('b','full',this)">40x60</span>
+<span class="zone-pill zp-a3" onclick="toggleZone('b','a3',this)">A3</span>
+<span class="zone-pill zp-a4" onclick="toggleZone('b','a4',this)">A4</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Print Type -->
+<div class="card">
+<div class="card-title">ประเภทการพิมพ์</div>
+<div class="pill-group" id="printTypeGroup">
+<div class="pill active" data-val="color" onclick="selectPill('printTypeGroup',this)">ผ้าสี (White Ink+CMYK)</div>
+<div class="pill" data-val="white" onclick="selectPill('printTypeGroup',this)">ผ้าขาว (CMYK only)</div>
+</div>
+</div>
+<!-- Pre-Treatment -->
+<div class="card">
+<div class="card-title">Pre-Treatment</div>
+<div class="pill-group" id="pretreatGroup">
+<div class="pill" data-val="yes" onclick="selectPill('pretreatGroup',this)">ต้องการ</div>
+<div class="pill active" data-val="no" onclick="selectPill('pretreatGroup',this)">ไม่ต้องการ</div>
+</div>
+</div>
+<!-- Sizes -->
+<div class="card">
+<div class="card-title">ไซส์และจำนวน</div>
+<div class="size-tabs">
+<div class="size-tab active" onclick="switchSizeTab('unisex',this)">Unisex</div>
+<div class="size-tab" onclick="switchSizeTab('oversize',this)">Oversize</div>
+</div>
+<div id="sizeUnisex">
+<table class="size-table">
+<tr><th>SIZE</th><th>CHEST</th><th>LENGTH</th><th>จำนวน</th></tr>
+<tr><td>M</td><td>36"-38"</td><td>27"</td><td><input type="number" min="0" value="0" onchange="calcSizes()"></td></tr>
+<tr><td>L</td><td>38"-40"</td><td>28"</td><td><input type="number" min="0" value="0" onchange="calcSizes()"></td></tr>
+<tr><td>XL</td><td>40"-42"</td><td>29"</td><td><input type="number" min="0" value="0" onchange="calcSizes()"></td></tr>
+<tr><td>XXL</td><td>42"-44"</td><td>30"</td><td><input type="number" min="0" value="0" onchange="calcSizes()"></td></tr>
+<tr class="total-row"><td colspan="3">รวม</td><td id="uniTotal">0</td></tr>
+</table>
+</div>
+<div id="sizeOversize" style="display:none">
+<table class="size-table">
+<tr><th>SIZE</th><th>CHEST</th><th>จำนวน</th></tr>
+<tr><td>M</td><td>44"</td><td><input type="number" min="0" value="0" onchange="calcSizes()"></td></tr>
+<tr><td>L</td><td>46"</td><td><input type="number" min="0" value="0" onchange="calcSizes()"></td></tr>
+<tr><td>XL</td><td>48"</td><td><input type="number" min="0" value="0" onchange="calcSizes()"></td></tr>
+<tr><td>XXL</td><td>50"</td><td><input type="number" min="0" value="0" onchange="calcSizes()"></td></tr>
+<tr class="total-row"><td colspan="2">รวม</td><td id="overTotal">0</td></tr>
+</table>
+</div>
+<div style="margin-top:8px;font-size:.75rem;color:var(--sub)">*Size may vary ± 2 cm.</div>
+</div>
+<!-- Price -->
+<div class="card">
+<div class="card-title">ราคา</div>
+<div class="price-grid">
+<div class="form-group"><label>ราคา/ตัว</label><input type="number" id="priceEach" min="0" value="0" oninput="calcPrice()"></div>
+<div class="form-group"><label>จำนวนรวม</label><input type="number" id="qty" min="0" value="0" readonly></div>
+<div class="form-group"><label>ราคารวม</label><input type="number" id="priceTotal" min="0" value="0" readonly></div>
+<div class="form-group"><label>มัดจำ</label><input type="number" id="deposit" min="0" value="0" oninput="calcPrice()"></div>
+</div>
+<div style="margin-top:14px">
+<div class="price-highlight">
+<div class="label">ยอดคงเหลือ</div>
+<div class="value" id="balance">0 บาท</div>
+</div>
+</div>
+</div>
+<!-- Notes -->
+<div class="card">
+<div class="card-title">หมายเหตุ</div>
+<div class="form-group full-width"><textarea id="notes" rows="3" placeholder="รายละเอียดเพิ่มเติม" style="width:100%;padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-size:.95rem;resize:vertical;background:var(--card);color:var(--text)"></textarea></div>
+</div>
+</div><!-- end container -->
+<!-- Action Bar -->
+<div class="action-bar no-print">
+<div><span style="font-weight:700" id="joBar">-</span></div>
+<div style="display:flex;gap:10px">
+<button class="btn btn-outline" onclick="resetForm()">รีเซ็ต</button>
+<button class="btn btn-secondary" onclick="saveDraft()">บันทึก Draft</button>
+<button class="btn btn-primary" onclick="submitOrder()">ออกใบงาน</button>
+</div>
+</div>
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirmModal">
+<div class="modal">
+<h3>ยืนยันออกใบงาน</h3>
+<div id="confirmBody"></div>
+<div class="modal-actions">
+<button class="btn btn-outline" onclick="closeModal()">ยกเลิก</button>
+<button class="btn btn-primary" onclick="confirmSubmit()">ยืนยัน & พิมพ์</button>
+</div>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL='https://ojhddtjionzbmsbkgevt.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qaGRkdGppb256Ym1zYmtnZXZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2NzIwNTYsImV4cCI6MjA5MDI0ODA1Nn0.06wZn25XNSSFiHj7C3t-SbnmXi11WfSpJz-q2QaydDE';
+let sb,currentJO='';
+try{sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);checkConn()}catch(e){offline()}
+async function checkConn(){try{const{data,error}=await sb.from('job_orders').select('id',{count:'exact',head:true});if(error)throw error;document.getElementById('statusDot').className='status-dot online';document.getElementById('statusText').textContent='Online';await getNextJO()}catch(e){offline()}}
+function offline(){document.getElementById('statusDot').className='status-dot offline';document.getElementById('statusText').textContent='Offline';fallbackJO()}// Submit
+function submitOrder(){const d=collectData();let html='<p><b>JO:</b> '+d.jo_number+'</p>';html+='<p><b>\u0e25\u0e39\u0e01\u0e04\u0e49\u0e32:</b> '+(d.customer_name||'-')+'</p>';html+='<p><b>\u0e08\u0e33\u0e19\u0e27\u0e19:</b> '+d.quantity+' \u0e15\u0e31\u0e27</p>';html+='<p><b>\u0e23\u0e32\u0e04\u0e32\u0e23\u0e27\u0e21:</b> '+d.price_total.toLocaleString()+' \u0e1a\u0e32\u0e17</p>';html+='<p><b>\u0e01\u0e33\u0e2b\u0e19\u0e14\u0e2a\u0e48\u0e07:</b> '+(d.due_date||'-')+'</p>';document.getElementById('confirmBody').innerHTML=html;document.getElementById('confirmModal').classList.add('show')}
+function closeModal(){document.getElementById('confirmModal').classList.remove('show')}
+async function confirmSubmit(){closeModal();const d=collectData();try{if(sb){const{error}=await sb.from('job_orders').insert([d]);if(error)throw error}window.print();alert('\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08! '+d.jo_number);resetForm();await getNextJO()}catch(e){alert('Error: '+e.message);console.error(e)}}
+function saveDraft(){localStorage.setItem('jo_draft',JSON.stringify(collectData()));alert('\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01 Draft \u0e41\u0e25\u0e49\u0e27')}
+function resetForm(){document.querySelectorAll('input[type=text],input[type=tel],input[type=number],textarea').forEach(i=>{if(i.type==='number')i.value='0';else i.value=''});document.querySelectorAll('.pill.active').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.print-zone.active').forEach(z=>z.classList.remove('active'));document.querySelectorAll('.zone-pill.active').forEach(z=>z.classList.remove('active'));document.querySelector('#urgencyGroup .pill[data-val=normal]').classList.add('active');document.querySelector('#printTypeGroup .pill[data-val=color]').classList.add('active');document.querySelector('#pretreatGroup .pill[data-val=no]').classList.add('active');document.getElementById('uniTotal').textContent='0';document.getElementById('overTotal').textContent='0';document.getElementById('balance').textContent='0 \u0e1a\u0e32\u0e17';calcSizes()}
+</script>
+</body>
+</html>
+function fallbackJO(){const d=new Date();const yy=String(d.getFullYear()).slice(-2);const mm=String(d.getMonth()+1).padStart(2,'0');const n=parseInt(localStorage.getItem('jo_seq')||'0')+1;localStorage.setItem('jo_seq',String(n));currentJO=`JO-${yy}${mm}-${String(n).padStart(4,'0')}`;showJO()}
+async function getNextJO(){try{const{data,error}=await sb.rpc('get_next_jo_number');if(error)throw error;currentJO=data;showJO()}catch(e){fallbackJO()}}
+function showJO(){document.getElementById('joDisplay').textContent=currentJO;document.getElementById('joBar').textContent=currentJO}
+// Date
+const now=new Date();document.getElementById('dateDisplay').textContent=now.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
+const dd=new Date(now);dd.setDate(dd.getDate()+3);document.getElementById('dueDate').value=dd.toISOString().split('T')[0];
+document.getElementById('dueDate').addEventListener('change',checkDue);
+function checkDue(){const v=document.getElementById('dueDate').value;const w=document.getElementById('dueWarn');if(!v){w.className='due-warn';return}const d=new Date(v);const diff=Math.ceil((d-new Date())/(1000*60*60*24));if(diff<0){w.className='due-warn overdue';w.textContent='\u26a0\ufe0f \u0e40\u0e25\u0e22\u0e01\u0e33\u0e2b\u0e19\u0e14\u0e2a\u0e48\u0e07!'}else if(diff<=2){w.className='due-warn soon';w.textContent='\u23f3 \u0e40\u0e2b\u0e25\u0e37\u0e2d '+diff+' \u0e27\u0e31\u0e19'}else{w.className='due-warn'}}
+checkDue();
+// Pill functions
+function selectPill(gid,el){document.querySelectorAll('#'+gid+' .pill').forEach(p=>p.classList.remove('active'));el.classList.add('active')}
+function togglePill(el){el.classList.toggle('active')}
+function getActivePill(gid){const a=document.querySelector('#'+gid+' .pill.active');return a?a.dataset.val:''}
+function getActiveMulti(gid){return[...document.querySelectorAll('#'+gid+' .pill.active')].map(p=>p.dataset.val)}
+// Zone toggle
+function toggleZone(side,zone,el){el.classList.toggle('active');const prefix=side==='f'?'fZone':'bZone';const id=prefix+zone.charAt(0).toUpperCase()+zone.slice(1);document.getElementById(id).classList.toggle('active')}
+// Size tabs
+function switchSizeTab(tab,el){document.querySelectorAll('.size-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.getElementById('sizeUnisex').style.display=tab==='unisex'?'':'none';document.getElementById('sizeOversize').style.display=tab==='oversize'?'':'none'}
+function calcSizes(){let ut=0,ot=0;document.querySelectorAll('#sizeUnisex input').forEach(i=>ut+=parseInt(i.value)||0);document.querySelectorAll('#sizeOversize input').forEach(i=>ot+=parseInt(i.value)||0);document.getElementById('uniTotal').textContent=ut;document.getElementById('overTotal').textContent=ot;document.getElementById('qty').value=ut+ot;calcPrice()}
+function calcPrice(){const pe=parseFloat(document.getElementById('priceEach').value)||0;const q=parseInt(document.getElementById('qty').value)||0;const t=pe*q;document.getElementById('priceTotal').value=t;const d=parseFloat(document.getElementById('deposit').value)||0;document.getElementById('balance').textContent=(t-d).toLocaleString()+' \u0e1a\u0e32\u0e17'}
+// Theme
+function toggleTheme(){document.body.dataset.theme=document.body.dataset.theme==='dark'?'':'dark';localStorage.setItem('theme',document.body.dataset.theme)}
+if(localStorage.getItem('theme')==='dark')document.body.dataset.theme='dark';
+// Collect data
+function collectData(){const szU={},szO={};document.querySelectorAll('#sizeUnisex tr:not(:first-child):not(.total-row)').forEach(r=>{const s=r.cells[0].textContent;const v=parseInt(r.querySelector('input').value)||0;if(v)szU[s]=v});document.querySelectorAll('#sizeOversize tr:not(:first-child):not(.total-row)').forEach(r=>{const s=r.cells[0].textContent;const v=parseInt(r.querySelector('input').value)||0;if(v)szO[s]=v});const fz=[],bz=[];document.querySelectorAll('#frontWrap .print-zone.active').forEach(z=>{const c=z.className.match(/zone-(\w+)/);if(c)fz.push(c[1])});document.querySelectorAll('#backWrap .print-zone.active').forEach(z=>{const c=z.className.match(/zone-(\w+)/);if(c)bz.push(c[1])});return{jo_number:currentJO,due_date:document.getElementById('dueDate').value||null,urgency:getActivePill('urgencyGroup'),customer_name:document.getElementById('custName').value,fb_line:document.getElementById('custFB').value,phone:document.getElementById('custPhone').value,file_name:document.getElementById('fileName').value,receiver:document.getElementById('receiver').value,shirt_color:document.getElementById('shirtColor').value,delivery:getActivePill('deliveryGroup'),payment:getActiveMulti('paymentGroup'),print_front:fz,print_back:bz,print_type:getActivePill('printTypeGroup'),pretreat:getActivePill('pretreatGroup'),sizes_unisex:szU,sizes_over:szO,quantity:parseInt(document.getElementById('qty').value)||0,price_per:parseFloat(document.getElementById('priceEach').value)||0,price_total:parseFloat(document.getElementById('priceTotal').value)||0,deposit:parseFloat(document.getElementById('deposit').value)||0,balance:parseFloat(document.getElementById('priceTotal').value)-parseFloat(document.getElementById('deposit').value)||0,notes:document.getElementById('notes').value}}
